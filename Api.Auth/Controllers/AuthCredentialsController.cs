@@ -1,7 +1,6 @@
+using System;
 using System.Threading.Tasks;
-using Api.Auth.Data;
 using Api.Auth.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Auth.Controllers
@@ -17,8 +16,9 @@ namespace Api.Auth.Controllers
         }
         
         [HttpGet("create/{email}/{password}")]
-        public async Task<ActionResult> Create([FromBody] string email, string password)
+        public async Task<ActionResult> Create (string email, string password)
         {
+            Console.WriteLine("api/auth/credentials/create");
              await _authCredentialsService.Create(email, password);
              return Ok();
         }

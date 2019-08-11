@@ -1,4 +1,5 @@
-﻿using Api.Auth.Data;
+﻿using System;
+using Api.Auth.Data;
 using Api.Auth.Extensions;
 using Api.Auth.Models;
 using Api.Auth.Services;
@@ -12,6 +13,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using NLog.Fluent;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace Api.Auth
 {
@@ -19,7 +22,7 @@ namespace Api.Auth
     {
         private IConfiguration _configuration { get; }
         private AuthConfig _authConfig;
-        private JwtService _jwtService;
+        private IJwtService _jwtService;
         
         public Startup(IConfiguration configuration)
         {
@@ -29,7 +32,11 @@ namespace Api.Auth
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddMvc()
+                .AddJsonOptions(
+                    options => options.SerializerSettings.ReferenceLoopHandling =
+                        Newtonsoft.Json.ReferenceLoopHandling.Ignore
+                );
             services.AddDbContext<RepositoryContext>(options =>
                 options.UseNpgsql(_configuration.GetConnectionString("DbConnection")));
             
@@ -40,7 +47,11 @@ namespace Api.Auth
             
             var sp = services.BuildServiceProvider();
             _authConfig = sp.GetService<IOptions<AuthConfig>>().Value;
-            _jwtService = sp.GetService<JwtService>();
+            _jwtService = sp.GetService<IJwtService>();
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Info {Title = "Online Chat application.", Version = "v1"});
+            });
             ConfigureJWT(services);
         }
 
@@ -59,6 +70,8 @@ namespace Api.Auth
             app.ConfigureCustomExceptionMiddleware();
             app.UseAuthentication();
             app.UseHttpsRedirection();
+            app.UseSwagger();
+            app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1"); });
             app.UseMvc();
         }
         
@@ -67,19 +80,20 @@ namespace Api.Auth
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
-                    options.RequireHttpsMetadata = false;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateIssuer = true,
-                        ValidIssuer = _authConfig.Issuer,
+                        ClockSkew = TimeSpan.FromMinutes(_authConfig.JwtExpireMinutes),
+                        IssuerSigningKey = _jwtService.GetSymmetricSecurityKey(),
+                        RequireSignedTokens = true,
+                        RequireExpirationTime = true,
+                        ValidateLifetime = true,
                         ValidateAudience = true,
                         ValidAudience = _authConfig.Audience,
-                        ValidateLifetime = true,
-                        IssuerSigningKey = _jwtService.GetSymmetricSecurityKey(),
-                        ValidateIssuerSigningKey = true
-                    }; 
+                        ValidateIssuer = true,
+                        ValidIssuer = _authConfig.Issuer
+                    };
+                    options.RequireHttpsMetadata = false;
                 });
         }
-        
     }
 }
