@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Api.Auth.Data;
 using Api.Auth.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Auth.Controllers
@@ -15,10 +16,25 @@ namespace Api.Auth.Controllers
             _authCredentialsService = authCredentialsService;
         }
         
-        public async Task<ActionResult> Add([FromBody] AuthCredentials authCredentials)
+        [HttpGet("create/{email}/{password}")]
+        public async Task<ActionResult> Create([FromBody] string email, string password)
         {
-             await _authCredentialsService.Create(authCredentials);
+             await _authCredentialsService.Create(email, password);
              return Ok();
+        }
+        
+        [HttpGet("change-password/{newPassword}/{email}/{password}")]
+        public async Task<ActionResult> ChangePassword([FromBody] string newPassword, string email, string password)
+        {
+            await _authCredentialsService.ChangePassword(newPassword, email, password);
+            return Ok();
+        }
+        
+        [HttpGet("delete/{email}/{password}")]
+        public async Task<ActionResult> Delete([FromBody] string email, string password)
+        {
+            await _authCredentialsService.Delete(email, password);
+            return Ok();
         }
     }
 }

@@ -5,6 +5,8 @@ namespace Api.Auth.Services.Interfaces
 {
     public interface IAuthCredentialsService
     {
-        Task Create(AuthCredentials authCredentials);
+        Task Create(string email, string password);
+        Task ChangePassword(string newPassword, string email, string password);
+        Task Delete(string email, string password);
     }
 }

@@ -47,6 +47,5 @@ namespace Api.Auth.Middleware
                 Message = exception.Message
             }.ToString());
         }
-
     }
 }

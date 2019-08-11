@@ -35,9 +35,8 @@ namespace Api.Auth.Services
             //todo encrypt & decrypt 
             var authCredentials = await _db.AuthCredentials.FindAsync(email);
             if (authCredentials == null || authCredentials.Password != password)
-            {
                 throw new BadRequestException();
-            }
+            
 
             var expireTime = DateTime.UtcNow.Add(TimeSpan.FromMinutes(_authConfig.JwtExpireMinutes));
             return new JsonResult(JsonConvert.SerializeObject(GenerateToken(email,expireTime))) {StatusCode = 200};
@@ -79,7 +78,5 @@ namespace Api.Auth.Services
                 new Claim(ClaimsIdentity.DefaultRoleClaimType, GroupTypesEnum.User.Description())
             };
         }
-        
-       
     }
 }
