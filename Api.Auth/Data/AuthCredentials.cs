@@ -3,6 +3,7 @@ using Api.Auth.Data.Enums;
 
 namespace Api.Auth.Data
 {
+    [Table("Auth_Credentials")]
     public class AuthCredentials
     {
         public AuthCredentials(string email, string password)
@@ -11,10 +12,10 @@ namespace Api.Auth.Data
             Password = password;
             RegistrationStateEnum = RegistrationStateEnum.Unconfirmed;
         }
-        public string Email { get; set; }
-        public string Password { get; set; }
-        public int RegistrationStateId { get; set; }
-    
+        [Column("Email")] public string Email { get; set; }
+        [Column("Password")] public string Password { get; set; }
+        [Column("Relation_State_Id")] public int RegistrationStateId { get; set; }
+
         [NotMapped]
         public RegistrationStateEnum RegistrationStateEnum
         {

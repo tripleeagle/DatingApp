@@ -6,5 +6,6 @@ namespace Api.Auth.Models
         public string Issuer { get; set; }
         public int JwtExpireMinutes { get; set; }
         public string Audience { get; set; }
+        public int RefreshTokenExpireMonth { get; set; }
     }
 }

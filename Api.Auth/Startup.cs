@@ -7,13 +7,12 @@ using Api.Auth.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
-using NLog.Fluent;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace Api.Auth
@@ -22,7 +21,7 @@ namespace Api.Auth
     {
         private IConfiguration _configuration { get; }
         private AuthConfig _authConfig;
-        private IJwtService _jwtService;
+        private IJwtHandler _jwtHandler;
         
         public Startup(IConfiguration configuration)
         {
@@ -43,11 +42,12 @@ namespace Api.Auth
             services.Configure<AuthConfig>(_configuration.GetSection("JwtSettings"));
             services.AddScoped<IAuthCredentialsService, AuthCredentialsService>();
             services.AddScoped<ILoginService, LoginService>();
-            services.AddSingleton<IJwtService, JwtService>();
+            services.AddScoped<ITokenService, TokenService>();
+            services.AddSingleton<IJwtHandler, JwtHandler>();
             
             var sp = services.BuildServiceProvider();
             _authConfig = sp.GetService<IOptions<AuthConfig>>().Value;
-            _jwtService = sp.GetService<IJwtService>();
+            _jwtHandler = sp.GetService<IJwtHandler>();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info {Title = "Online Chat application.", Version = "v1"});
@@ -83,7 +83,7 @@ namespace Api.Auth
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ClockSkew = TimeSpan.FromMinutes(_authConfig.JwtExpireMinutes),
-                        IssuerSigningKey = _jwtService.GetSymmetricSecurityKey(),
+                        IssuerSigningKey = _jwtHandler.GetSymmetricSecurityKey(),
                         RequireSignedTokens = true,
                         RequireExpirationTime = true,
                         ValidateLifetime = true,

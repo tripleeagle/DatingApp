@@ -1,14 +1,14 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
+using Api.Auth.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Auth.Services.Interfaces
 {
     public interface ILoginService
     {
-        Task<IActionResult> Login(string email, string password);
-        IActionResult Logout(string email);
-        IActionResult Refresh(string email, JwtSecurityToken jwtSecurityToken);
+        Task<JwtWebTokenModel> SignIn(string email, string password);
+        //IActionResult SignOut(string email);
     }
 }
