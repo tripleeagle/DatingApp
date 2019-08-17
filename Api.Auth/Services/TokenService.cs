@@ -11,19 +11,19 @@ namespace Api.Auth.Services
 {
     public class TokenService: ITokenService
     {
-        private readonly JwtOptions _jwtOptions;
+        private readonly JwtSettings _jwtSettings;
         private readonly RepositoryContext _db;
         private readonly IJwtHandler _jwtHandler;
         private readonly IDistributedCache _cache;
 
         public TokenService(
-            IOptions<JwtOptions> jwtOptions, 
+            IOptions<JwtSettings> jwtOptions, 
             RepositoryContext db,
             IJwtHandler jwtHandler, 
             IDistributedCache cache
         )
         {
-            _jwtOptions = jwtOptions.Value;
+            _jwtSettings = jwtOptions.Value;
             _db = db;
             _jwtHandler = jwtHandler;
             _cache = cache;
@@ -47,6 +47,11 @@ namespace Api.Auth.Services
 
         public async Task<JwtWebTokenModel> Create(string email)
         {
+            var previousRefreshToken = await GetRefreshTokenByEmail(email);
+            if (previousRefreshToken != null)
+            {
+                await Remove(previousRefreshToken);
+            }
             var jwtWebTokenModel = _jwtHandler.Generate(email);
             await _db.JwtRefreshTokens.AddAsync(jwtWebTokenModel.JwtRefreshToken);
             await _db.SaveChangesAsync();
@@ -58,7 +63,7 @@ namespace Api.Auth.Services
             await _cache.SetStringAsync(accessToken, "", new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow =
-                    TimeSpan.FromMinutes(_jwtOptions.JwtExpireMinutes)
+                    TimeSpan.FromMinutes(_jwtSettings.JwtExpireMinutes)
             });
         }
 
@@ -87,11 +92,17 @@ namespace Api.Auth.Services
         {
             return _db.JwtRefreshTokens.FirstOrDefaultAsync(x => x.Email == email);
         }
+
+        private Task Remove(JwtRefreshToken jwtRefreshToken)
+        {
+            _db.JwtRefreshTokens.Remove(jwtRefreshToken);
+            return _db.SaveChangesAsync();
+        }
         
         private Task<JwtRefreshToken> GetRefreshToken(string refreshToken)
         {
             return _db.JwtRefreshTokens.FirstOrDefaultAsync(x =>
-                x.JwtToken == refreshToken);
+                x.Key == refreshToken);
         }
     }
 }

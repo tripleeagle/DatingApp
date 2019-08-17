@@ -26,6 +26,7 @@ namespace Api.Auth.Middleware
             catch (Exception ex)
             {
                 Log.Error($"Exception: {ex}");
+                Console.WriteLine($"Exception: {ex}");
                 await HandleExceptionAsync(httpContext, ex);
             }
         }
@@ -38,6 +39,9 @@ namespace Api.Auth.Middleware
             {
                 case BadRequestException _:
                     context.Response.StatusCode = (int) HttpStatusCode.BadRequest;
+                    break;
+                default:
+                    context.Response.StatusCode = (int) HttpStatusCode.InternalServerError;
                     break;
             }
 

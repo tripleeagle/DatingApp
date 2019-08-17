@@ -11,6 +11,15 @@ namespace Api.Auth.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ForNpgsqlUseIdentityColumns();
+            modelBuilder.Entity<AuthCredentials>(entity =>
+            {
+                entity.HasKey(x => x.Email);
+            });
+            
+            modelBuilder.Entity<JwtRefreshToken>(entity =>
+            {
+                entity.HasKey(x => x.Email);
+            });
         }
         
         public DbSet<AuthCredentials> AuthCredentials { get; set; }

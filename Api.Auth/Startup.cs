@@ -20,7 +20,7 @@ namespace Api.Auth
     public class Startup
     {
         private IConfiguration _configuration { get; }
-        private JwtOptions _jwtOptions;
+        private JwtSettings _jwtSettings;
         private IJwtHandler _jwtHandler;
         
         public Startup(IConfiguration configuration)
@@ -40,15 +40,18 @@ namespace Api.Auth
                 options.UseNpgsql(_configuration.GetConnectionString("DbConnection")));
             services.AddDistributedRedisCache(r => { r.Configuration = _configuration["redis:connectionString"]; });
             
-            services.Configure<JwtOptions>(_configuration.GetSection("JwtSettings"));
+            services.Configure<JwtSettings>(_configuration.GetSection("JwtSettings"));
+            services.Configure<CryptoSettings>(_configuration.GetSection("CryptoSettings"));
+            
             services.AddScoped<IAuthCredentialsService, AuthCredentialsService>();
             services.AddScoped<ILoginService, LoginService>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddSingleton<IJwtHandler, JwtHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<ICryptoHandler, CryptoHandler>();
             
             var sp = services.BuildServiceProvider();
-            _jwtOptions = sp.GetService<IOptions<JwtOptions>>().Value;
+            _jwtSettings = sp.GetService<IOptions<JwtSettings>>().Value;
             _jwtHandler = sp.GetService<IJwtHandler>();
             services.AddSwaggerGen(c =>
             {
@@ -84,15 +87,15 @@ namespace Api.Auth
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ClockSkew = TimeSpan.FromMinutes(_jwtOptions.JwtExpireMinutes),
+                        ClockSkew = TimeSpan.FromMinutes(_jwtSettings.JwtExpireMinutes),
                         IssuerSigningKey = _jwtHandler.GetSymmetricSecurityKey(),
                         RequireSignedTokens = true,
                         RequireExpirationTime = true,
                         ValidateLifetime = true,
                         ValidateAudience = true,
-                        ValidAudience = _jwtOptions.Audience,
+                        ValidAudience = _jwtSettings.Audience,
                         ValidateIssuer = true,
-                        ValidIssuer = _jwtOptions.Issuer
+                        ValidIssuer = _jwtSettings.Issuer
                     };
                     options.RequireHttpsMetadata = false;
                 });

@@ -13,33 +13,38 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 
 namespace Api.Auth.Services
 {
     public class JwtHandler: IJwtHandler
     {
-        private readonly JwtOptions _jwtOptions;
+        private readonly JwtSettings _jwtSettings;
+        private readonly ICryptoHandler _cryptoHandler;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        
-        public JwtHandler(IOptions<JwtOptions> authConfig, IHttpContextAccessor httpContextAccessor)
+
+        public JwtHandler(
+            IOptions<JwtSettings> authConfig, 
+            ICryptoHandler cryptoHandler,
+            IHttpContextAccessor httpContextAccessor
+        )
         {
-            _jwtOptions = authConfig.Value;
+            _jwtSettings = authConfig.Value;
+            _cryptoHandler = cryptoHandler;
             _httpContextAccessor = httpContextAccessor;
         }
         
         public SymmetricSecurityKey GetSymmetricSecurityKey()
         {
-            return new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtOptions.Key));
+            return new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtSettings.Key));
         }
 
         public JwtWebTokenModel Generate(string email)
         {
-            var expiresAccess = DateTime.UtcNow.Add(TimeSpan.FromMinutes(_jwtOptions.JwtExpireMinutes));
-            var expiresRefresh = DateTime.UtcNow.Add(TimeSpan.FromDays(_jwtOptions.RefreshTokenExpireMonth * 30));
-            var jwtAccess = new JwtSecurityToken(
-                _jwtOptions.Issuer,
-                _jwtOptions.Audience,
+            var expiresAccess = DateTime.UtcNow.Add(TimeSpan.FromMinutes(_jwtSettings.JwtExpireMinutes));
+            var expiresRefresh = DateTime.UtcNow.Add(TimeSpan.FromDays(_jwtSettings.RefreshTokenExpireMonth * 30));
+            var jwtAccessToken = new JwtSecurityToken(
+                _jwtSettings.Issuer,
+                _jwtSettings.Audience,
                 notBefore: DateTime.UtcNow,
                 claims: GetClaims(email),
                 expires: expiresAccess,
@@ -47,26 +52,18 @@ namespace Api.Auth.Services
                     GetSymmetricSecurityKey(), 
                     SecurityAlgorithms.HmacSha256)
             );
-            var jwtRefreshToken = new JwtRefreshToken{
-                Email = email,
-                JwtToken = JsonConvert.SerializeObject(
-                    new JwtSecurityToken(
-                        _jwtOptions.Issuer,
-                        _jwtOptions.Audience,
-                        notBefore: DateTime.UtcNow,
-                        claims: GetClaims(email),
-                        expires: expiresRefresh,
-                        signingCredentials: new SigningCredentials(
-                            GetSymmetricSecurityKey(), 
-                            SecurityAlgorithms.HmacSha256)
-                    )),
-                ValidTo = expiresRefresh
-            };
+            
+
+            var encodedJwtAccess = new JwtSecurityTokenHandler().WriteToken(jwtAccessToken);
             
             return new JwtWebTokenModel
             {
-                AccessToken = JsonConvert.SerializeObject(jwtAccess),
-                JwtRefreshToken = jwtRefreshToken
+                AccessToken = encodedJwtAccess,
+                JwtRefreshToken = new JwtRefreshToken{
+                    Email = email,
+                    Key = _cryptoHandler.EncryptString(email),
+                    ValidTo = expiresRefresh
+                }
             };
         }
 

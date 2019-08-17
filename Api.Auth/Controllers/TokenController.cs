@@ -20,9 +20,9 @@ namespace Api.Auth.Controllers
         [Authorize]
         [HttpGet]
         [Route("refresh/{refreshToken}/{email}")]
-        private async Task<JwtWebTokenModel> Refresh(string refreshToken, string email)
+        public async Task<JwtWebTokenModel> Refresh(string refreshToken, string email)
         {
             return await _tokenService.Refresh(refreshToken, email);
-        }    
+        }
     }
 }
