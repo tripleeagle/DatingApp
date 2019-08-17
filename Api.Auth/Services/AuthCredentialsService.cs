@@ -47,5 +47,10 @@ namespace Api.Auth.Services
             _db.AuthCredentials.Remove(authCredentialsDb);
             await _db.SaveChangesAsync();
         }
+
+        public Task<AuthCredentials> GetCredentials(string email)
+        {
+            return _db.AuthCredentials.FindAsync(email);
+        }
     }
 }

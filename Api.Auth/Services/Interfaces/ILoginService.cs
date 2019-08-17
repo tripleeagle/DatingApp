@@ -9,6 +9,6 @@ namespace Api.Auth.Services.Interfaces
     public interface ILoginService
     {
         Task<JwtWebTokenModel> SignIn(string email, string password);
-        //IActionResult SignOut(string email);
+        Task SignOut(string email, string refreshToken);
     }
 }

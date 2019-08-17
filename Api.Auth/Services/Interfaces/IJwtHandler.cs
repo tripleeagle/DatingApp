@@ -7,5 +7,6 @@ namespace Api.Auth.Services.Interfaces
     {
         SymmetricSecurityKey GetSymmetricSecurityKey();
         JwtWebTokenModel Generate(string email);
+        string GetTokenFromHeader();
     }
 }

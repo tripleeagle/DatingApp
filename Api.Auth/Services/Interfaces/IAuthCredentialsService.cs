@@ -8,5 +8,6 @@ namespace Api.Auth.Services.Interfaces
         Task Create(string email, string password);
         Task ChangePassword(string newPassword, string email, string password);
         Task Delete(string email, string password);
+        Task<AuthCredentials> GetCredentials(string email);
     }
 }

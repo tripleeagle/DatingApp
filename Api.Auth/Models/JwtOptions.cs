@@ -1,6 +1,6 @@
 namespace Api.Auth.Models
 {
-    public class AuthConfig
+    public class JwtOptions
     {
         public string Key { get; set; }
         public string Issuer { get; set; }

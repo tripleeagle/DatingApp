@@ -7,11 +7,11 @@ using Api.Auth.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Swagger;
 
@@ -20,7 +20,7 @@ namespace Api.Auth
     public class Startup
     {
         private IConfiguration _configuration { get; }
-        private AuthConfig _authConfig;
+        private JwtOptions _jwtOptions;
         private IJwtHandler _jwtHandler;
         
         public Startup(IConfiguration configuration)
@@ -38,15 +38,17 @@ namespace Api.Auth
                 );
             services.AddDbContext<RepositoryContext>(options =>
                 options.UseNpgsql(_configuration.GetConnectionString("DbConnection")));
+            services.AddDistributedRedisCache(r => { r.Configuration = _configuration["redis:connectionString"]; });
             
-            services.Configure<AuthConfig>(_configuration.GetSection("JwtSettings"));
+            services.Configure<JwtOptions>(_configuration.GetSection("JwtSettings"));
             services.AddScoped<IAuthCredentialsService, AuthCredentialsService>();
             services.AddScoped<ILoginService, LoginService>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddSingleton<IJwtHandler, JwtHandler>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             
             var sp = services.BuildServiceProvider();
-            _authConfig = sp.GetService<IOptions<AuthConfig>>().Value;
+            _jwtOptions = sp.GetService<IOptions<JwtOptions>>().Value;
             _jwtHandler = sp.GetService<IJwtHandler>();
             services.AddSwaggerGen(c =>
             {
@@ -82,15 +84,15 @@ namespace Api.Auth
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ClockSkew = TimeSpan.FromMinutes(_authConfig.JwtExpireMinutes),
+                        ClockSkew = TimeSpan.FromMinutes(_jwtOptions.JwtExpireMinutes),
                         IssuerSigningKey = _jwtHandler.GetSymmetricSecurityKey(),
                         RequireSignedTokens = true,
                         RequireExpirationTime = true,
                         ValidateLifetime = true,
                         ValidateAudience = true,
-                        ValidAudience = _authConfig.Audience,
+                        ValidAudience = _jwtOptions.Audience,
                         ValidateIssuer = true,
-                        ValidIssuer = _authConfig.Issuer
+                        ValidIssuer = _jwtOptions.Issuer
                     };
                     options.RequireHttpsMetadata = false;
                 });

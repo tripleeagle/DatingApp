@@ -7,5 +7,8 @@ namespace Api.Auth.Services.Interfaces
     {
         Task<JwtWebTokenModel> Refresh(string refreshToken, string email);
         Task<JwtWebTokenModel> Create(string email);
+        Task RevokeAccess(string accessToken);
+        Task RevokeRefresh(string email);
+        Task<bool> IsActive(string token);
     }
 }
