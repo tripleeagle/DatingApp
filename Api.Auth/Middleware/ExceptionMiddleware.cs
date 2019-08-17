@@ -4,7 +4,8 @@ using System.Threading.Tasks;
 using Api.Auth.Models.Exceptions;
 using Api.Auth.Models.Responses;
 using Microsoft.AspNetCore.Http;
-using NLog.Fluent;
+using Serilog;
+
 
 namespace Api.Auth.Middleware
 {
@@ -26,7 +27,6 @@ namespace Api.Auth.Middleware
             catch (Exception ex)
             {
                 Log.Error($"Exception: {ex}");
-                Console.WriteLine($"Exception: {ex}");
                 await HandleExceptionAsync(httpContext, ex);
             }
         }
