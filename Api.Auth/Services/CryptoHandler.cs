@@ -19,7 +19,7 @@ namespace Api.Auth.Services
 
         public string EncryptString(string text)
         {
-            var key = Convert.FromBase64String(_cryptoSettings.Salt);
+            var key = Encoding.UTF8.GetBytes(_cryptoSettings.Salt);
             
             using (var aesAlg = Aes.Create())
             {
@@ -53,7 +53,7 @@ namespace Api.Auth.Services
             var fullCipher = Convert.FromBase64String(cipherText);
 
             var iv = new byte[16];
-            var cipher = new byte[fullCipher.Length - iv.Length];
+            var cipher = new byte[16];
 
             Buffer.BlockCopy(fullCipher, 0, iv, 0, iv.Length);
             Buffer.BlockCopy(fullCipher, iv.Length, cipher, 0, iv.Length);

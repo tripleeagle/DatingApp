@@ -31,9 +31,8 @@ namespace Api.Auth.Services
 
         public async Task<JwtWebTokenModel> SignIn(string email, string password)
         {
-            //todo encrypt & decrypt 
             var authCredentials = await _db.AuthCredentials.FindAsync(email);
-            if (authCredentials == null || authCredentials.Password != _cryptoHandler.EncryptString(password))
+            if (authCredentials == null || password != _cryptoHandler.DecryptString(authCredentials.Password))
                 throw new BadRequestException();
 
             return await _tokenService.Create(email);
