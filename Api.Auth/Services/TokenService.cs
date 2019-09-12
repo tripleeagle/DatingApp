@@ -83,10 +83,6 @@ namespace Api.Auth.Services
             await _db.SaveChangesAsync();
         }
         
-        public async Task<bool> IsActive(string token)
-        {
-            return await _cache.GetStringAsync(token) == null;
-        }
 
         private Task<JwtRefreshToken> GetRefreshTokenByEmail(string email)
         {

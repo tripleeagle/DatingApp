@@ -19,7 +19,7 @@ namespace Api.Auth.Controllers
         }
         
         [AllowAnonymous]
-        [HttpGet("create/{email}/{password}")]
+        [HttpPost("create/{email}/{password}")]
         public async Task<ActionResult> Create (string email, string password)
         {
             Console.WriteLine("api/auth/credentials/create");
@@ -28,7 +28,7 @@ namespace Api.Auth.Controllers
         }
         
         [Authorize]
-        [HttpGet("change-password/{newPassword}/{email}/{password}")]
+        [HttpPut("change-password/{newPassword}/{email}/{password}")]
         public async Task<ActionResult> ChangePassword([FromBody] string newPassword, string email, string password)
         {
    
@@ -37,7 +37,7 @@ namespace Api.Auth.Controllers
         }
         
         [Authorize]
-        [HttpGet("delete/{email}/{password}")]
+        [HttpDelete("delete/{email}/{password}")]
         public async Task<ActionResult> Delete([FromBody] string email, string password)
         {
             await _authCredentialsService.Delete(email, password);
