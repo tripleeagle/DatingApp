@@ -60,7 +60,8 @@ namespace Api.Auth.Services
         
         public async Task RevokeAccess(string accessToken)
         {
-            await _cache.SetStringAsync(accessToken, "", new DistributedCacheEntryOptions
+            await _cache.SetStringAsync("test","testValue");
+            await _cache.SetStringAsync(accessToken, " ", new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow =
                     TimeSpan.FromMinutes(_jwtSettings.JwtExpireMinutes)

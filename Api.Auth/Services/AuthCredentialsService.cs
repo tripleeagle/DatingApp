@@ -31,7 +31,7 @@ namespace Api.Auth.Services
         public async Task ChangePassword(string newPassword, string email, string password)
         {
             var authCredentialsDb = await _db.AuthCredentials.FindAsync(email);
-            if ( authCredentialsDb != null && authCredentialsDb.Password != _cryptoHandler.EncryptString(password))
+            if ( authCredentialsDb != null && _cryptoHandler.DecryptString(authCredentialsDb.Password) != password)
                 throw new BadRequestException();
 
             if (authCredentialsDb != null)

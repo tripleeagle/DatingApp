@@ -29,16 +29,15 @@ namespace Api.Auth.Controllers
         
         [Authorize]
         [HttpPut("change-password/{newPassword}/{email}/{password}")]
-        public async Task<ActionResult> ChangePassword([FromBody] string newPassword, string email, string password)
+        public async Task<ActionResult> ChangePassword(string newPassword, string email, string password)
         {
-   
             await _authCredentialsService.ChangePassword(newPassword, email, password);
             return Ok();
         }
         
         [Authorize]
         [HttpDelete("delete/{email}/{password}")]
-        public async Task<ActionResult> Delete([FromBody] string email, string password)
+        public async Task<ActionResult> Delete(string email, string password)
         {
             await _authCredentialsService.Delete(email, password);
             return Ok();

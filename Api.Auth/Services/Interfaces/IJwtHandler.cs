@@ -6,7 +6,7 @@ namespace Api.Auth.Services.Interfaces
     public interface IJwtHandler
     {
         SymmetricSecurityKey GetSymmetricSecurityKey();
-        JwtWebTokenModel Generate(string email);
+        JwtWebTokenModel Generate(string email); 
         string GetTokenFromHeader();
     }
 }

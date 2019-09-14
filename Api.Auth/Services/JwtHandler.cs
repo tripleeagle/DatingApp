@@ -53,7 +53,6 @@ namespace Api.Auth.Services
                     SecurityAlgorithms.HmacSha256)
             );
             
-
             var encodedJwtAccess = new JwtSecurityTokenHandler().WriteToken(jwtAccessToken);
             
             return new JwtWebTokenModel
@@ -76,7 +75,7 @@ namespace Api.Auth.Services
                 ? string.Empty
                 : authorizationHeader.Single().Split(" ").Last();
         }
-        
+
         private static IEnumerable<Claim> GetClaims(string email)
         {
             return new List<Claim>
